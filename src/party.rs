@@ -67,6 +67,8 @@ pub enum PartyError {
     PartyLocked,
     #[error("already settled")]
     AlreadySettled,
+    #[error("member already exists")]
+    MemberAlreadyExists,
 }
 
 pub struct Party {
@@ -118,6 +120,23 @@ impl Party {
         }
 
         MembersSplit { creditors, debtors }
+    }
+
+    pub fn add_member(&mut self, member_id: &str) -> Result<(), PartyError> {
+        match self.state {
+            PartyState::Locked => return Err(PartyError::PartyLocked),
+            PartyState::Settled => return Err(PartyError::AlreadySettled),
+            _ => {}
+        };
+
+        if let Some(_) = self.members.get(member_id) {
+            return Err(PartyError::MemberAlreadyExists);
+        }
+
+        self.members
+            .insert(member_id.to_string(), PartyMember::new(member_id));
+
+        Ok(())
     }
 
     pub fn add_expense(
