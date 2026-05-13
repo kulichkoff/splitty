@@ -1,1 +1,6 @@
 /target
+
+# Secrets
+.env
+*.env
+!*.enc.env
