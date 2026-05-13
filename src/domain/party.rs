@@ -8,6 +8,16 @@ pub struct MemberExpense {
     description: Option<String>,
 }
 
+impl MemberExpense {
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
+    pub fn expense(&self) -> f64 {
+        self.expense
+    }
+}
+
 #[derive(Debug)]
 pub struct PartyMember {
     id: String,
@@ -22,6 +32,10 @@ impl PartyMember {
             to_transfer: 0f64,
             expenses: Vec::new(),
         }
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
     }
 
     pub fn spent(&self) -> f64 {
