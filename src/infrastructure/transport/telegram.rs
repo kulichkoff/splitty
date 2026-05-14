@@ -30,9 +30,12 @@ async fn handle_command(
         Command::Start => {
             let party_repo = ctx.party_repo;
             let handler = commands::StartPartyHandler::new(party_repo.as_ref().clone());
+            let owner = msg.from.unwrap();
             let result = handler
                 .execute(commands::StartPartyCommand {
                     chat_id: msg.chat.id.0,
+                    owner_slug: owner.username.unwrap(),
+                    owner_telegram_id: owner.id.0 as i64,
                 })
                 .await;
             if let Err(err) = result {

@@ -1,7 +1,12 @@
-use crate::{application::ports::PartyRepository, domain::party::Party};
+use crate::{
+    application::ports::PartyRepository,
+    domain::party::{Party, PartyMember},
+};
 
 pub struct StartPartyCommand {
     pub chat_id: i64,
+    pub owner_telegram_id: i64,
+    pub owner_slug: String,
 }
 
 pub struct StartPartyHandler<R>
@@ -22,6 +27,11 @@ where
     pub async fn execute(&self, command: StartPartyCommand) -> anyhow::Result<()> {
         let party = Party::new(command.chat_id);
         self.party_repository.save_party(party).await?;
+
+        let party = Party::new(command.chat_id);
+        let member = PartyMember::new(command.owner_telegram_id, &command.owner_slug);
+        self.party_repository.insert_member(&party, &member).await?;
+
         Ok(())
     }
 }
