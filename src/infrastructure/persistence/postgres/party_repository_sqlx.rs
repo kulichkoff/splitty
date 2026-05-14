@@ -6,6 +6,7 @@ use crate::{
     domain::party::{MemberExpense, Party, PartyMember},
 };
 
+#[derive(Clone)]
 pub struct SqlxPartyRepository {
     pool: PgPool,
 }
@@ -92,7 +93,7 @@ impl PartyRepository for SqlxPartyRepository {
         )))
     }
 
-    async fn insert_member(&self, party: &Party, member: &PartyMember) -> anyhow::Result<()> {
+    async fn insert_member(&self, party: &Party, member: &PartyMember) -> anyhow::Result<i64> {
         let mut tx = self.pool.begin().await?;
         let insert_result = sqlx::query!(
             r#"
@@ -124,7 +125,7 @@ impl PartyRepository for SqlxPartyRepository {
         .await?;
 
         tx.commit().await?;
-        Ok(())
+        Ok(insert_result.id)
     }
 
     async fn insert_member_expense(

@@ -43,7 +43,17 @@ pub struct PartyMember {
 }
 
 impl PartyMember {
-    pub fn new(id: PartyMemberId, telegram_id: i64, slug: &str) -> Self {
+    pub fn new(telegram_id: i64, slug: &str) -> Self {
+        PartyMember {
+            id: -1,
+            telegram_id,
+            slug: slug.to_string(),
+            to_transfer: 0f64,
+            expenses: Vec::new(),
+        }
+    }
+
+    pub fn with_id(id: i64, telegram_id: i64, slug: &str) -> Self {
         PartyMember {
             id,
             telegram_id,
@@ -162,6 +172,10 @@ impl Party {
         }
     }
 
+    pub fn get_member(&self, slug: PartyMemberSlug) -> Option<&PartyMember> {
+        self.members.get(&slug)
+    }
+
     pub fn id(&self) -> i64 {
         self.id
     }
@@ -181,7 +195,7 @@ impl Party {
     fn get_member_or_create(&mut self, member_id: &str) -> &mut PartyMember {
         self.members
             .entry(member_id.to_string())
-            .or_insert_with(|| PartyMember::new(0, 0, member_id))
+            .or_insert_with(|| PartyMember::new(0, member_id))
     }
 
     fn spent_avg(&self) -> f64 {
@@ -228,7 +242,7 @@ impl Party {
         }
 
         self.members
-            .insert(member_id.to_string(), PartyMember::new(0, 0, member_id));
+            .insert(member_id.to_string(), PartyMember::new(0, member_id));
 
         Ok(())
     }
