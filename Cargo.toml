@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-thiserror = "2.0.18"
+teloxide = { version = "0.17.0", features = ["macros"] }
+tokio = { version =  "1.39", features = ["rt-multi-thread", "macros"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio", "postgres", "uuid" ] }
+thiserror = "2.0.18"
 anyhow = "1.0.102"
