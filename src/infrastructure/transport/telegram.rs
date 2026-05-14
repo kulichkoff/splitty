@@ -1,7 +1,10 @@
 mod command;
 
 use command::Command;
-use teloxide::{prelude::*, sugar::request::RequestReplyExt, utils::command::BotCommands};
+use teloxide::{
+    dispatching::dialogue::GetChatId, prelude::*, sugar::request::RequestReplyExt,
+    utils::command::BotCommands,
+};
 
 use crate::{AppContext, application::commands};
 
@@ -84,7 +87,27 @@ async fn handle_command(
             }
         }
         Command::Part(args) => {
-            println!("part args {}", args);
+            let sender = msg.from.unwrap();
+            let sender_username = sender.username.unwrap();
+
+            let party_repo = ctx.party_repo;
+            let handler = commands::IncludeMemberHandler::new(party_repo.as_ref().clone());
+
+            let result = handler
+                .execute(commands::IncludeMemberCommand {
+                    chat_id: msg.chat.id.0,
+                    member_telegram_id: sender.id.0 as i64,
+                    member_slug: sender_username,
+                })
+                .await;
+
+            if let Err(err) = result {
+                eprintln!("failed to execute include member command: {:?}", err);
+            } else {
+                bot.send_message(msg.chat.id, "You're listed now")
+                    .reply_to(msg.id)
+                    .await?;
+            }
         }
         Command::End => todo!(),
     };
