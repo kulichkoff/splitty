@@ -134,6 +134,11 @@ async fn handle_command(
 fn build_transfers_message(transfers: Vec<Transfer>) -> String {
     let mut msg = String::from("Party is finished, let's do some money\n");
 
+    if transfers.is_empty() {
+        msg.push_str("It looks like you've already balanced all the payments.");
+        return msg;
+    }
+
     for transfer in transfers {
         msg.push_str(&format!(
             "\n{} sends {} to {}",
