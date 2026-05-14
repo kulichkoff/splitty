@@ -137,9 +137,9 @@ pub struct Party {
 }
 
 impl Party {
-    pub fn new(id: PartyId, chat_id: i64) -> Self {
+    pub fn new(chat_id: i64) -> Self {
         Party {
-            id,
+            id: -1,
             chat_id,
             state: PartyState::Collecting,
             members: HashMap::new(),
@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn members_equalized_expenses_2() {
-        let mut party = Party::new(0, 0);
+        let mut party = Party::new(0);
 
         party
             .add_expense(
@@ -346,7 +346,7 @@ mod tests {
 
     #[test]
     fn members_equalized_expenses_3() {
-        let mut party = Party::new(0, 0);
+        let mut party = Party::new(0);
 
         party
             .add_expense(
