@@ -7,8 +7,8 @@ pub enum Command {
     Help,
     #[command(description = "start a new party.")]
     Start,
-    #[command(description = "add expense to the party.", parse_with = "split")]
-    Paid { amount: String, description: String },
+    #[command(description = "add expense to the party.")]
+    Paid(String),
     #[command(description = "include a member to the party.")]
     Part(String),
     #[command(description = "finish the party and calculate splits.")]
