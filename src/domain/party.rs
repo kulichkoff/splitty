@@ -9,8 +9,20 @@ pub struct MemberExpense {
 }
 
 impl MemberExpense {
+    pub fn new(amount_cents: i64, description: Option<String>) -> Self {
+        let amount = (amount_cents as f64) / 100f64;
+        Self {
+            expense: amount,
+            description,
+        }
+    }
+
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
+    }
+
+    pub fn amount_cents(&self) -> i64 {
+        (self.expense * 100f64).trunc() as i64
     }
 
     pub fn expense(&self) -> f64 {
@@ -18,24 +30,54 @@ impl MemberExpense {
     }
 }
 
+type PartyMemberId = i64;
+type PartyMemberSlug = String;
+
 #[derive(Debug)]
 pub struct PartyMember {
-    id: String,
+    id: PartyMemberId,
+    telegram_id: i64,
+    slug: PartyMemberSlug,
     to_transfer: f64,
     expenses: Vec<MemberExpense>,
 }
 
 impl PartyMember {
-    pub fn new(id: &str) -> Self {
+    pub fn new(id: PartyMemberId, telegram_id: i64, slug: &str) -> Self {
         PartyMember {
-            id: id.to_string(),
+            id,
+            telegram_id,
+            slug: slug.to_string(),
             to_transfer: 0f64,
             expenses: Vec::new(),
         }
     }
 
-    pub fn id(&self) -> &str {
-        &self.id
+    pub fn with_expenses(
+        id: PartyMemberId,
+        telegram_id: i64,
+        slug: &str,
+        expenses: Vec<MemberExpense>,
+    ) -> Self {
+        PartyMember {
+            id,
+            telegram_id,
+            slug: slug.to_string(),
+            to_transfer: 0f64,
+            expenses,
+        }
+    }
+
+    pub fn id(&self) -> PartyMemberId {
+        self.id
+    }
+
+    pub fn slug(&self) -> &str {
+        &self.slug
+    }
+
+    pub fn telegram_id(&self) -> i64 {
+        self.telegram_id
     }
 
     pub fn spent(&self) -> f64 {
@@ -85,23 +127,61 @@ pub enum PartyError {
     MemberAlreadyExists,
 }
 
+pub type PartyId = i64;
+
 pub struct Party {
+    id: PartyId,
+    chat_id: i64,
     members: HashMap<String, PartyMember>,
     state: PartyState,
 }
 
 impl Party {
-    pub fn new() -> Self {
+    pub fn new(id: PartyId, chat_id: i64) -> Self {
         Party {
+            id,
+            chat_id,
             state: PartyState::Collecting,
             members: HashMap::new(),
+        }
+    }
+
+    pub fn from_raw(id: PartyId, chat_id: i64, members: Vec<PartyMember>, state: &str) -> Self {
+        let state = match state {
+            "locked" => PartyState::Locked,
+            "settled" => PartyState::Settled,
+            _ => PartyState::Collecting,
+        };
+        let members: HashMap<String, PartyMember> =
+            members.into_iter().map(|m| (m.slug.clone(), m)).collect();
+        Party {
+            id,
+            chat_id,
+            members,
+            state,
+        }
+    }
+
+    pub fn id(&self) -> i64 {
+        self.id
+    }
+
+    pub fn chat_id(&self) -> i64 {
+        self.chat_id
+    }
+
+    pub fn state_str(&self) -> &str {
+        match self.state {
+            PartyState::Collecting => return "collecting",
+            PartyState::Locked => return "locked",
+            PartyState::Settled => return "settled",
         }
     }
 
     fn get_member_or_create(&mut self, member_id: &str) -> &mut PartyMember {
         self.members
             .entry(member_id.to_string())
-            .or_insert_with(|| PartyMember::new(member_id))
+            .or_insert_with(|| PartyMember::new(0, 0, member_id))
     }
 
     fn spent_avg(&self) -> f64 {
@@ -127,9 +207,9 @@ impl Party {
             let member_spent: f64 = member.spent();
             let balance = member_spent - avg;
             if balance > 0f64 {
-                creditors.push(member.id.clone());
+                creditors.push(member.slug.clone());
             } else {
-                debtors.push(member.id.clone());
+                debtors.push(member.slug.clone());
             }
         }
 
@@ -148,7 +228,7 @@ impl Party {
         }
 
         self.members
-            .insert(member_id.to_string(), PartyMember::new(member_id));
+            .insert(member_id.to_string(), PartyMember::new(0, 0, member_id));
 
         Ok(())
     }
@@ -222,7 +302,7 @@ mod tests {
 
     #[test]
     fn members_equalized_expenses_2() {
-        let mut party = Party::new();
+        let mut party = Party::new(0, 0);
 
         party
             .add_expense(
@@ -266,7 +346,7 @@ mod tests {
 
     #[test]
     fn members_equalized_expenses_3() {
-        let mut party = Party::new();
+        let mut party = Party::new(0, 0);
 
         party
             .add_expense(
