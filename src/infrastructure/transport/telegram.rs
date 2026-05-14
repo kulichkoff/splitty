@@ -81,7 +81,7 @@ async fn handle_command(
                 .await;
 
             if let Err(err) = result {
-                eprintln!("failed to execute insert member command: {:?}", err);
+                eprintln!("failed to execute add expense command: {:?}", err);
             } else {
                 bot.send_message(msg.chat.id, "✅").reply_to(msg.id).await?;
             }
