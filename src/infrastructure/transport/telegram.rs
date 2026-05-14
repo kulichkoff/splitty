@@ -1,7 +1,7 @@
 mod command;
 
 use command::Command;
-use teloxide::{prelude::*, utils::command::BotCommands};
+use teloxide::{prelude::*, sugar::request::RequestReplyExt, utils::command::BotCommands};
 
 use crate::{AppContext, application::commands};
 
@@ -45,7 +45,43 @@ async fn handle_command(
             }
         }
         Command::Paid(args) => {
-            println!("paid args {}", args);
+            const USAGE: &'static str = "Usage: /paid <amount> <description>";
+
+            let mut parts = args.splitn(2, ' ');
+
+            let Some(amount) = parts.next() else {
+                bot.send_message(msg.chat.id, USAGE).await?;
+                return Ok(());
+            };
+
+            let Ok(amount_parsed) = amount.parse::<f64>() else {
+                bot.send_message(msg.chat.id, USAGE).await?;
+                return Ok(());
+            };
+            let amount_cents = (amount_parsed * 100f64) as i64;
+
+            let description = parts.next().map(str::to_string);
+            let sender = msg.from.unwrap();
+            let sender_username = sender.username.unwrap();
+
+            let party_repo = ctx.party_repo;
+            let handler = commands::AddExpenseHandler::new(party_repo.as_ref().clone());
+
+            let result = handler
+                .execute(commands::AddExpenseCommand {
+                    chat_id: msg.chat.id.0,
+                    member_telegram_id: sender.id.0 as i64,
+                    member_slug: sender_username.clone(),
+                    amount_cents,
+                    description,
+                })
+                .await;
+
+            if let Err(err) = result {
+                eprintln!("failed to execute insert member command: {:?}", err);
+            } else {
+                bot.send_message(msg.chat.id, "✅").reply_to(msg.id).await?;
+            }
         }
         Command::Part(args) => {
             println!("part args {}", args);
