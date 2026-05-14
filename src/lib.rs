@@ -1,5 +1,5 @@
-pub mod domain;
 pub mod application;
+pub mod domain;
 pub mod infrastructure;
 
 pub fn add(left: u64, right: u64) -> u64 {

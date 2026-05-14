@@ -172,9 +172,9 @@ impl Party {
 
     pub fn state_str(&self) -> &str {
         match self.state {
-            PartyState::Collecting => return "collecting",
-            PartyState::Locked => return "locked",
-            PartyState::Settled => return "settled",
+            PartyState::Collecting => "collecting",
+            PartyState::Locked => "locked",
+            PartyState::Settled => "settled",
         }
     }
 
@@ -223,7 +223,7 @@ impl Party {
             _ => {}
         };
 
-        if let Some(_) = self.members.get(member_id) {
+        if self.members.contains_key(member_id) {
             return Err(PartyError::MemberAlreadyExists);
         }
 
