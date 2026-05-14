@@ -18,7 +18,7 @@ impl SqlxPartyRepository {
 }
 
 impl PartyRepository for SqlxPartyRepository {
-    async fn save_party(&self, party: Party) -> anyhow::Result<()> {
+    async fn save_party(&self, party: &Party) -> anyhow::Result<()> {
         sqlx::query!(
             r#"
             INSERT INTO parties (
