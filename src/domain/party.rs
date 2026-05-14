@@ -103,9 +103,9 @@ impl PartyMember {
 
 #[derive(Debug, PartialEq)]
 pub struct Transfer {
-    from_id: String,
-    to_id: String,
-    amount: f64,
+    pub from_id: String,
+    pub to_id: String,
+    pub amount: f64,
 }
 
 struct MembersSplit {

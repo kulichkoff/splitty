@@ -1,12 +1,9 @@
 mod command;
 
 use command::Command;
-use teloxide::{
-    dispatching::dialogue::GetChatId, prelude::*, sugar::request::RequestReplyExt,
-    utils::command::BotCommands,
-};
+use teloxide::{prelude::*, sugar::request::RequestReplyExt, utils::command::BotCommands};
 
-use crate::{AppContext, application::commands};
+use crate::{AppContext, application::commands, domain::party::Transfer};
 
 pub async fn serve(ctx: AppContext) {
     let bot = Bot::from_env();
@@ -109,8 +106,40 @@ async fn handle_command(
                     .await?;
             }
         }
-        Command::End => todo!(),
+        Command::End => {
+            let party_repo = ctx.party_repo;
+            let handler = commands::FinishPartyHandler::new(party_repo.as_ref().clone());
+
+            let result = handler
+                .execute(commands::FinishPartyCommand {
+                    chat_id: msg.chat.id.0,
+                })
+                .await;
+
+            match result {
+                Err(err) => {
+                    eprintln!("failed to execute finish party command: {:?}", err);
+                }
+                Ok(transfers) => {
+                    let msg_text = build_transfers_message(transfers);
+                    bot.send_message(msg.chat.id, msg_text).await?;
+                }
+            }
+        }
     };
 
     Ok(())
+}
+
+fn build_transfers_message(transfers: Vec<Transfer>) -> String {
+    let mut msg = String::from("Party is finished, let's do some money\n");
+
+    for transfer in transfers {
+        msg.push_str(&format!(
+            "\n{} sends {} to {}",
+            transfer.from_id, transfer.amount, transfer.to_id
+        ));
+    }
+
+    msg
 }
