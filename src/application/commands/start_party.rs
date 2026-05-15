@@ -25,9 +25,9 @@ where
     }
 
     pub async fn execute(&self, command: StartPartyCommand) -> anyhow::Result<()> {
-        let party = Party::new(command.chat_id);
-        self.party_repository.save_party(&party).await?;
-
+        let mut party = Party::new(command.chat_id);
+        let party_id = self.party_repository.save_party(&party).await?;
+        party.set_id(party_id);
 
         let member = PartyMember::new(command.owner_telegram_id, &command.owner_slug);
         self.party_repository.insert_member(&party, &member).await?;

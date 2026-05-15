@@ -2,7 +2,7 @@ use crate::domain::party::{MemberExpense, Party, PartyMember};
 
 #[allow(async_fn_in_trait)]
 pub trait PartyRepository: Clone + Send + Sync {
-    async fn save_party(&self, party: &Party) -> anyhow::Result<()>;
+    async fn save_party(&self, party: &Party) -> anyhow::Result<i64>;
     async fn insert_member(&self, party: &Party, member: &PartyMember) -> anyhow::Result<i64>;
     async fn insert_member_expense(
         &self,

@@ -176,6 +176,10 @@ impl Party {
         self.members.get(&slug)
     }
 
+    pub fn set_id(&mut self, id: i64) {
+        self.id = id;
+    }
+
     pub fn id(&self) -> i64 {
         self.id
     }

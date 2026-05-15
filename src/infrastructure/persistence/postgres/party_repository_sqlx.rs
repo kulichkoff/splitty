@@ -18,21 +18,22 @@ impl SqlxPartyRepository {
 }
 
 impl PartyRepository for SqlxPartyRepository {
-    async fn save_party(&self, party: &Party) -> anyhow::Result<()> {
-        sqlx::query!(
+    async fn save_party(&self, party: &Party) -> anyhow::Result<i64> {
+        let inserted = sqlx::query!(
             r#"
             INSERT INTO parties (
                 chat_id,
                 state
             ) VALUES ($1, $2)
+            RETURNING id
             "#,
             party.chat_id(),
             party.state_str(),
         )
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
-        Ok(())
+        Ok(inserted.id)
     }
 
     async fn find_by_chat_id(&self, chat_id: i64) -> anyhow::Result<Option<Party>> {
@@ -118,7 +119,7 @@ impl PartyRepository for SqlxPartyRepository {
 
             ON CONFLICT DO NOTHING
             "#,
-            party.id(), // TODO: pass real tg id
+            party.id(),
             insert_result.id
         )
         .execute(&mut *tx)
