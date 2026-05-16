@@ -119,6 +119,7 @@ struct MembersSplit {
 /// - Collecting: Users add expenses via commands or a Mini App.
 /// - Locked: The host locks the party. No more expenses. Bot calculates and publishes the settlement plan.
 /// - Settled: Users confirm payments. Bot tracks who has paid whom
+#[derive(Clone)]
 pub enum PartyState {
     Collecting,
     Locked,
@@ -189,7 +190,7 @@ impl Party {
     }
 
     pub fn state(&self) -> PartyState {
-        self.state
+        self.state.clone()
     }
 
     pub fn state_str(&self) -> &str {
