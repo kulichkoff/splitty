@@ -1,6 +1,6 @@
 use crate::{
     application::ports::PartyRepository,
-    domain::party::{Party, PartyMember},
+    domain::party::{Party, PartyMember, PartyState},
 };
 
 pub struct StartPartyCommand {
@@ -29,7 +29,9 @@ where
             .party_repository
             .find_by_chat_id(command.chat_id)
             .await?;
-        if let Some(mut prev_party) = prev_party {
+        if let Some(mut prev_party) = prev_party
+            && matches!(prev_party.state(), PartyState::Collecting)
+        {
             prev_party.lock()?;
             self.party_repository.update_party(&prev_party).await?;
         }

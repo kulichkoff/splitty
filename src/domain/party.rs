@@ -188,6 +188,10 @@ impl Party {
         self.chat_id
     }
 
+    pub fn state(&self) -> PartyState {
+        self.state
+    }
+
     pub fn state_str(&self) -> &str {
         match self.state {
             PartyState::Collecting => "collecting",
