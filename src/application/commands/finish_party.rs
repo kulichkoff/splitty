@@ -34,6 +34,12 @@ where
             return Err(ApplicationError::NoPartyFound)?;
         };
 
-        Ok(party.evaluate())
+        party.lock()?;
+
+        let transfers = party.evaluate();
+
+        self.party_repository.update_party(&party).await?;
+
+        Ok(transfers)
     }
 }

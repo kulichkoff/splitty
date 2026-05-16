@@ -325,6 +325,8 @@ impl Party {
             }
         }
 
+        self.state = PartyState::Settled;
+
         transfers
     }
 }
