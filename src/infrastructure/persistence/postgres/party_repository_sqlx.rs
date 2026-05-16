@@ -102,11 +102,11 @@ impl PartyRepository for SqlxPartyRepository {
             VALUES ($1, $2)
 
             ON CONFLICT (telegram_id)
-            DO NOTHING
-
+            DO UPDATE
+            SET slug = members.slug
             RETURNING id
             "#,
-            0, // TODO: pass real tg id
+            member.telegram_id(),
             member.slug()
         )
         .fetch_one(&mut *tx)
