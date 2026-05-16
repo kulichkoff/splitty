@@ -36,6 +36,25 @@ impl PartyRepository for SqlxPartyRepository {
         Ok(inserted.id)
     }
 
+    async fn update_party(&self, party: &Party) -> anyhow::Result<i64> {
+        sqlx::query!(
+            r#"
+            UPDATE parties
+            SET chat_id = $2,
+                state = $3,
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+            party.id(),
+            party.chat_id(),
+            party.state_str()
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(party.id())
+    }
+
     async fn find_by_chat_id(&self, chat_id: i64) -> anyhow::Result<Option<Party>> {
         let party_row = sqlx::query!(
             r#"

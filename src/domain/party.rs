@@ -196,6 +196,16 @@ impl Party {
         }
     }
 
+    pub fn lock(&mut self) -> Result<(), PartyError> {
+        match self.state {
+            PartyState::Collecting => {
+                self.state = PartyState::Locked;
+                Ok(())
+            },
+            _ => Err(PartyError::InvalidTransition)
+        }
+    }
+
     fn get_member_or_create(&mut self, member_id: &str) -> &mut PartyMember {
         self.members
             .entry(member_id.to_string())

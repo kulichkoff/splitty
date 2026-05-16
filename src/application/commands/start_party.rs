@@ -25,6 +25,15 @@ where
     }
 
     pub async fn execute(&self, command: StartPartyCommand) -> anyhow::Result<()> {
+        let prev_party = self
+            .party_repository
+            .find_by_chat_id(command.chat_id)
+            .await?;
+        if let Some(mut prev_party) = prev_party {
+            prev_party.lock()?;
+            self.party_repository.update_party(&prev_party).await?;
+        }
+
         let mut party = Party::new(command.chat_id);
         let party_id = self.party_repository.save_party(&party).await?;
         party.set_id(party_id);
